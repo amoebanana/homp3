@@ -66,19 +66,18 @@ class MyFileList extends GetView<MyController> {
                       //   size: 32,
                       // ),
                       onTap: () {
+                        controller.stop();
                         // update playlistscreen
                         controller.LastShownSongmodels.value = snapshot.data!.toList();
                         // update actual conc playlist
                         controller.playlist = ConcatenatingAudioSource(
                           children: controller.LastShownSongmodels.map((e) => AudioSource.uri(Uri.parse(e.data))).toList(),
                         );
-                        controller.earplug = true;
                         controller.player.setAudioSource(controller.playlist);
                         controller.LastSongIndex.value = index;
                         // play music
                         controller.player.seek(Duration.zero, index: index);
                         controller.play();
-                        controller.earplug = false;
                         switchTab(2);
                       },
                     ),

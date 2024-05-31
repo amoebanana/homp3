@@ -26,7 +26,6 @@ class MyController extends GetxController {
     print('hitme');
   }
 
-  bool earplug = false;
   @override
   void onInit() {
     super.onInit();
@@ -49,8 +48,7 @@ class MyController extends GetxController {
     });
     player.currentIndexStream.listen((index) {
       if (index != null) {
-        if (earplug == false)
-          LastSongIndex.value = index;
+        LastSongIndex.value = index;
         // playback_title.value = LastShownSongmodels[index].title;
         print('currentIndexStream: $index');
       }
@@ -87,6 +85,9 @@ class MyController extends GetxController {
   void play() {
     player.play();
   }
+  void stop() {
+    player.stop();
+  }
   void forward() {
     player.seekToNext();
     LastSongIndex.value = player.currentIndex!;
@@ -103,6 +104,7 @@ class MyController extends GetxController {
   }
 
   void deleteSong() {
+    stop();
     File file = File(LastShownSongmodels[LastSongIndex.value].data);
     LastShownSongmodels.removeAt(LastSongIndex.value);
     playlist = ConcatenatingAudioSource(
@@ -112,6 +114,7 @@ class MyController extends GetxController {
     player.setAudioSource(playlist);
     LastSongIndex.value = index;
     player.seek(Duration.zero, index: LastSongIndex.value);
+    play();
     file.delete();
   }
 }
