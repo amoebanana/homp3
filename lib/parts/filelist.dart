@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:homp3/mycontroller.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
 class MyFileList extends GetView<MyController> {
-  const MyFileList({super.key});
+  MyFileList(this.switchTab, {super.key});
+  final Function(int index) switchTab;
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<SongModel>>(
         future: OnAudioQuery().querySongs(
           ignoreCase: true,
-          orderType: OrderType.ASC_OR_SMALLER,
+          orderType: OrderType.DESC_OR_GREATER,
           sortType: SongSortType.DATE_ADDED,
           path: "/storage/emulated/0/mp3/unsorted",
         ),
@@ -26,6 +28,7 @@ class MyFileList extends GetView<MyController> {
             );
           } else {
             return ListView.builder(
+                key: const PageStorageKey('filelist'),
                 itemCount: snapshot.data!.length,
                 itemBuilder: (context, index) {
                   return Container(
@@ -63,8 +66,20 @@ class MyFileList extends GetView<MyController> {
                       //   size: 32,
                       // ),
                       onTap: () {
-                        controller.LastFileList.value = snapshot.data!.map( (e) => e.data, ) .toList();
-                        controller.LastFileIndex.value = index;
+                        // update playlistscreen
+                        controller.LastShownSongmodels.value = snapshot.data!.toList();
+                        // update actual conc playlist
+                        controller.playlist = ConcatenatingAudioSource(
+                          children: controller.LastShownSongmodels.map((e) => AudioSource.uri(Uri.parse(e.data))).toList(),
+                        );
+                        controller.earplug = true;
+                        controller.player.setAudioSource(controller.playlist);
+                        controller.LastSongIndex.value = index;
+                        // play music
+                        controller.player.seek(Duration.zero, index: index);
+                        controller.play();
+                        controller.earplug = false;
+                        switchTab(2);
                       },
                     ),
                   );
