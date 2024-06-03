@@ -12,7 +12,7 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
-  late TabController tabController = TabController(length: 3, vsync: this);
+  late TabController tabController = TabController(length: 4, vsync: this);
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
@@ -24,16 +24,19 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         children: [
           Expanded(
             child: TabBarView(
+              physics: const NeverScrollableScrollPhysics(),
               controller: tabController,
               children: [
-                MyFileList(switchTab),
+                MyFileList(switchTab, "/storage/emulated/0/mp3/unsorted"),
+                MyFileList(switchTab, "/storage/emulated/0/mp3/sorted"),
                 ScreenPlaylist(),
                 ScreenPlayer(),
               ],
             ),
           ),
           TabBar(controller: tabController, tabs: [
-            Tab(text: 'Files'),
+            Tab(text: 'Unsorted'),
+            Tab(text: 'Sorted'),
             Tab(text: 'Playlists'),
             Tab(text: 'Player'),
           ])

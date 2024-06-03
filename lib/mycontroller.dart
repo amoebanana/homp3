@@ -21,6 +21,8 @@ class MyController extends GetxController {
 
   late ConcatenatingAudioSource playlist = ConcatenatingAudioSource(children:[]);
 
+  String currentdir = "";
+
   void hitme() {
     playback_title.value = LastShownSongmodels[player.currentIndex!].title;
     print('hitme');
