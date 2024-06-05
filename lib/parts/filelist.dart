@@ -98,7 +98,7 @@ class MyFileList extends GetView<MyController> {
                       controller.player.seek(Duration.zero, index: index);
                       controller.play();
                       controller.currentdir = dirpath;
-                      switchTab(3);
+                      switchTab(0);
                     },
                   ),
                 );
