@@ -9,10 +9,11 @@ class ScreenPlayer extends GetView<MyController> {
 
   @override
   Widget build(BuildContext context) {
-    return (controller.currentdir == "")
+    return (controller.LastShownSongmodels.isEmpty)
     ? Center(child: Text("play music first"))
     : Column(
       children: [
+        Container(height: 50,),
         AlbumArt(controller: controller),
         Expanded(child: Center()),
         Padding(
@@ -32,11 +33,15 @@ class ScreenPlayer extends GetView<MyController> {
           ]),
         ),
         Obx(() => Center(
-              child: Text(controller
+              child: controller.LastShownSongmodels.isEmpty ? 
+              Text("No song selected") :
+              Text(controller
                   .LastShownSongmodels[controller.LastSongIndex.value].artist ?? "Unknown"),
             )),
         Obx(() => Center(
-              child: Text(controller
+              child: controller.LastShownSongmodels.isEmpty ? 
+              Text("No song selected") :
+              Text(controller
                   .LastShownSongmodels[controller.LastSongIndex.value].title),
             )),
         UtilityRow(controller: controller),
@@ -67,7 +72,9 @@ class AlbumArt extends StatelessWidget {
       borderRadius: BorderRadius.circular(10),
       child: SizedBox(
         height: 370,
-        child: Obx(() => QueryArtworkWidget(
+        child: Obx(() => controller.LastShownSongmodels.isEmpty ? 
+        Text("No song selected") :
+        QueryArtworkWidget(
             id: controller
                 .LastShownSongmodels[controller.LastSongIndex.value].id,
             type: ArtworkType.AUDIO,
@@ -97,36 +104,77 @@ class UtilityRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+    // 플레이리스트가 비어 있을 경우
+    if (controller.LastShownSongmodels.isEmpty) {
+      return Center(child: Text("더 이상 재생할 곡이 없습니다."));
+    }
+    return Column(
+      children: [
+        Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
       IconButton(
           onPressed: () async {
             controller.deleteSong();
           },
           icon: const Icon(Icons.delete, color: Colors.white)),
       IconButton(
-        icon: const Icon(Icons.play_circle_rounded, color: Color.fromARGB(255, 255, 0, 0)),
+        icon: const Icon(Icons.play_circle_rounded,
+            color: Color.fromARGB(255, 255, 0, 0)),
         onPressed: () async {
-          String url = 'vnd.youtube://${controller.LastShownSongmodels[controller.LastSongIndex.value].composer}';
+          String url =
+              'vnd.youtube://${controller.LastShownSongmodels[controller.LastSongIndex.value].composer}';
           // run youtube
           // if (await canLaunchUrl(Uri(path: url))) {
           //   await launchUrl(Uri(path: url));
           // }
           if (await canLaunch(url)) {
             await launch(url);
-          }
-          else {
+          } else {
             // run webbrowser
-            String webUrl = 'https://www.youtube.com/watch?v=${controller.LastShownSongmodels[controller.LastSongIndex.value].composer}';
+            String webUrl =
+                'https://www.youtube.com/watch?v=${controller.LastShownSongmodels[controller.LastSongIndex.value].composer}';
             if (await canLaunchUrl(Uri(path: webUrl))) {
               await launchUrl(Uri(path: webUrl));
-            }
-            else {
+            } else {
               throw 'Could not launch $webUrl';
             }
           }
         },
+      ),
+      ElevatedButton(
+        onPressed: () {
+          controller.shufflePlaylist(); // 플레이리스트 섞기 버튼
+        },
+        child: Text("R"),
+      ),
+      ElevatedButton(
+        onPressed: () {
+          controller.moveSong('s'); // "toS" 버튼
+        },
+        child: Text("toS"),
+      ),
+      ElevatedButton(
+        onPressed: () {
+          controller.moveSong('u'); // "toU" 버튼
+        },
+        child: Text("toU"),
+      ),
+      ElevatedButton(
+        onPressed: () {
+          controller.moveSong('a'); // "toA" 버튼
+        },
+        child: Text("toA"),
       )
-    ]);
+    ]),
+    Row(
+      children: [
+      ElevatedButton(onPressed: () {controller.moveSong('envT');},child: Text("마을"),),
+      ElevatedButton(onPressed: () {controller.moveSong('envX');},child: Text("야외"),),
+      ElevatedButton(onPressed: () {controller.moveSong('envD');},child: Text("던전"),),
+      ElevatedButton(onPressed: () {controller.moveSong('envC');},child: Text("전투"),),
+      ],
+    )
+      ],
+    );
   }
 }
 

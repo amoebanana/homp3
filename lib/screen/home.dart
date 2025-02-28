@@ -29,8 +29,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               children: [
                 ScreenPlayer(),
                 ScreenPlaylist(),
-                MyFileList(switchTab, "/storage/emulated/0/mp3/sorted"),
-                MyFileList(switchTab, "/storage/emulated/0/mp3/unsorted"),
+                MyFileList(switchTab, "/storage/emulated/0/Nerv/mp3/sorted"),
+                MyFileList(switchTab, "/storage/emulated/0/Nerv/mp3/unsorted"),
               ],
             ),
           ),

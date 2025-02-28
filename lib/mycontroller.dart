@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'dart:math'; // 랜덤 함수를 위해 필요한 패키지
 
 import 'package:get/get.dart';
 import 'package:homp3/main.dart';
@@ -104,7 +105,20 @@ class MyController extends GetxController {
   void skipbackward() {
     player.seek(player.position - const Duration(seconds: 10));
   }
-
+  // 플레이리스트를 랜덤으로 섞는 함수
+  void shufflePlaylist() {
+    if (LastShownSongmodels.isNotEmpty) {
+      LastShownSongmodels.shuffle();
+      playlist = ConcatenatingAudioSource(
+        children: LastShownSongmodels.map((e) => AudioSource.uri(Uri.parse(e.data))).toList(),
+      );
+      player.setAudioSource(playlist);
+      LastSongIndex.value = 0; // 인덱스를 0으로 초기화
+      print('플레이리스트를 랜덤으로 섞었습니다.');
+    } else {
+      print('플레이리스트가 비어 있습니다.');
+    }
+  }
   void deleteSong() {
     stop();
     File file = File(LastShownSongmodels[LastSongIndex.value].data);
@@ -118,5 +132,72 @@ class MyController extends GetxController {
     player.seek(Duration.zero, index: LastSongIndex.value);
     play();
     file.delete();
+  }
+  Future<void> createDirectoryIfNotExists(String path) async {
+  final directory = Directory(path);
+  if (!await directory.exists()) {
+    try {
+      await directory.create(recursive: true);
+      print('디렉토리 생성 완료: $path');
+    } catch (e) {
+      print('디렉토리 생성 실패: $e');
+    }
+  }
+}
+  void moveSong(String destination) async {
+    // 현재 재생 중인 파일의 경로 가져오기
+    stop();
+    File file = File(LastShownSongmodels[LastSongIndex.value].data);
+    String currentPath = file.path;
+    String newPath;
+
+    // 목적지 경로 설정
+    if (destination == 's') {
+      newPath = '/storage/emulated/0/Nerv/mp3/sorted/${currentPath.split('/').last}';
+    } else if (destination == 'u') {
+      newPath = '/storage/emulated/0/Nerv/mp3/unsorted/${currentPath.split('/').last}';
+    } else if (destination == 'a') {
+      newPath = '/storage/emulated/0/Nerv/mp3/archive/${currentPath.split('/').last}';
+    } else if (destination == 'envT') {
+      newPath = '/storage/emulated/0/Nerv/mp3/envT/${currentPath.split('/').last}';
+    } else if (destination == 'envX') {
+      newPath = '/storage/emulated/0/Nerv/mp3/envX/${currentPath.split('/').last}';
+    } else if (destination == 'envD') {
+      newPath = '/storage/emulated/0/Nerv/mp3/envD/${currentPath.split('/').last}';
+    } else if (destination == 'envC') {
+      newPath = '/storage/emulated/0/Nerv/mp3/envC/${currentPath.split('/').last}';
+    } else {
+      return;
+    }
+    await createDirectoryIfNotExists(newPath);
+
+    try {
+      stop();
+      File file = File(LastShownSongmodels[LastSongIndex.value].data);
+      LastShownSongmodels.removeAt(LastSongIndex.value);
+      playlist = ConcatenatingAudioSource(
+        children: LastShownSongmodels.map((e) => AudioSource.uri(Uri.parse(e.data))).toList(),
+      );
+      var index = LastSongIndex.value;
+      player.setAudioSource(playlist);
+      if (LastShownSongmodels.length == 0) {
+        return;
+      }
+      else if (index >= LastShownSongmodels.length) {
+        index = LastShownSongmodels.length - 1;
+      }
+      else {
+        LastSongIndex.value = index;
+      }
+      player.seek(Duration.zero, index: LastSongIndex.value);
+      play();
+      file.renameSync(newPath); // 파일 이동
+      // LastShownSongmodels.removeAt(LastSongIndex.value);
+      // player.seek(Duration.zero, index: LastSongIndex.value);
+      // player.seekToNext();
+      // LastSongIndex.value = player.currentIndex!;
+    } catch (e) {
+      print('파일 이동 중 오류 발생: $e');
+    }
   }
 }
