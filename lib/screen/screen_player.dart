@@ -10,51 +10,171 @@ class ScreenPlayer extends GetView<MyController> {
   @override
   Widget build(BuildContext context) {
     return (controller.LastShownSongmodels.isEmpty)
-    ? Center(child: Text("play music first"))
-    : Column(
-      children: [
-        Container(height: 50,),
-        AlbumArt(controller: controller),
-        Expanded(child: Center()),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-            Obx(() => Text(_formatDuration(controller.position.value))),
-            Obx(() => Expanded(
-              child: Slider(
-                    value: controller.position.value.inSeconds.toDouble(),
-                    max: controller.duration.value.inSeconds.toDouble(),
-                    onChanged: (value) {
-                      controller.player.seek(Duration(seconds: value.toInt()));
-                    },
-                  ),
-            )),
-            Obx(() => Text(_formatDuration(controller.duration.value))),
-          ]),
-        ),
-        Obx(() => Center(
-              child: controller.LastShownSongmodels.isEmpty ? 
-              Text("No song selected") :
-              Text(controller
-                  .LastShownSongmodels[controller.LastSongIndex.value].artist ?? "Unknown"),
-            )),
-        Obx(() => Center(
-              child: controller.LastShownSongmodels.isEmpty ? 
-              Text("No song selected") :
-              Text(controller
-                  .LastShownSongmodels[controller.LastSongIndex.value].title),
-            )),
-        UtilityRow(controller: controller),
-        UserControlRow(controller: controller),
-        const SizedBox(height: 20),
-      ],
-    );
+        ? Center(child: Text("play music first"))
+        : Column(
+            children: [
+              Container(
+                height: 30,
+              ),
+              AlbumArt(controller: controller),
+              Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
+                const SizedBox(height: 10, width: 20),
+                Obx(() => Text(_formatDuration(controller.position.value))),
+                Obx(() => Expanded(
+                      child: Slider(
+                        value: controller.position.value.inSeconds.toDouble(),
+                        max: controller.duration.value.inSeconds.toDouble(),
+                        onChanged: (value) {
+                          controller.player
+                              .seek(Duration(seconds: value.toInt()));
+                        },
+                      ),
+                    )),
+                Obx(() => Text(_formatDuration(controller.duration.value))),
+                const SizedBox(height: 10, width: 20),
+              ]),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // 아티스트 (터치 가능)
+                  Obx(() => GestureDetector(
+                        onTap: () => _showEditArtistDialog(context),
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 4),
+                          child: controller.LastShownSongmodels.isEmpty
+                              ? Text("No song selected")
+                              : Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      controller
+                                              .LastShownSongmodels[controller
+                                                  .LastSongIndex.value]
+                                              .artist ??
+                                          "Unknown",
+                                    ),
+                                  ],
+                                ),
+                        ),
+                      )),
+                  // 제목 (터치 가능)
+                  Obx(() => GestureDetector(
+                        onTap: () => _showEditTitleDialog(context),
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 4),
+                          child: controller.LastShownSongmodels.isEmpty
+                              ? Text("No song selected")
+                              : Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      controller
+                                          .LastShownSongmodels[
+                                              controller.LastSongIndex.value]
+                                          .title,
+                                    ),
+                                  ],
+                                ),
+                        ),
+                      )),
+                ],
+              ),
+              Expanded(child: Center()),
+              UtilityRow(controller: controller),
+              UserControlRow(controller: controller),
+            ],
+          );
   }
 
   String _formatDuration(Duration duration) {
     return [duration.inMinutes, duration.inSeconds % 60]
         .map((seg) => seg.toString().padLeft(2, '0'))
         .join(':');
+  }
+
+  // 아티스트 편집 다이얼로그
+  Future<void> _showEditArtistDialog(BuildContext context) async {
+    if (controller.LastShownSongmodels.isEmpty) return;
+
+    final currentArtist =
+        controller.LastShownSongmodels[controller.LastSongIndex.value].artist ??
+            "Unknown";
+    final textController = TextEditingController(text: currentArtist);
+
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('아티스트 정보 수정'),
+        content: TextField(
+          controller: textController,
+          decoration: InputDecoration(
+            labelText: '아티스트',
+            border: OutlineInputBorder(),
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('취소'),
+          ),
+          TextButton(
+            onPressed: () async {
+              final newArtist = textController.text.trim();
+              if (newArtist.isNotEmpty && newArtist != currentArtist) {
+                Navigator.pop(context);
+                await controller.updateSongArtist(newArtist);
+              } else {
+                Navigator.pop(context);
+              }
+            },
+            child: Text('저장'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 제목 편집 다이얼로그
+  Future<void> _showEditTitleDialog(BuildContext context) async {
+    if (controller.LastShownSongmodels.isEmpty) return;
+
+    final currentTitle =
+        controller.LastShownSongmodels[controller.LastSongIndex.value].title;
+    final textController = TextEditingController(text: currentTitle);
+
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('노래 제목 수정'),
+        content: TextField(
+          controller: textController,
+          decoration: InputDecoration(
+            labelText: '제목',
+            border: OutlineInputBorder(),
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('취소'),
+          ),
+          TextButton(
+            onPressed: () async {
+              final newTitle = textController.text.trim();
+              if (newTitle.isNotEmpty && newTitle != currentTitle) {
+                Navigator.pop(context);
+                await controller.updateSongTitle(newTitle);
+              } else {
+                Navigator.pop(context);
+              }
+            },
+            child: Text('저장'),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -71,25 +191,117 @@ class AlbumArt extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
       child: SizedBox(
-        height: 370,
-        child: Obx(() => controller.LastShownSongmodels.isEmpty ? 
-        Text("No song selected") :
-        QueryArtworkWidget(
-            id: controller
-                .LastShownSongmodels[controller.LastSongIndex.value].id,
-            type: ArtworkType.AUDIO,
-            quality: 100,
-            size: 1000,
-            artworkBorder: BorderRadius.zero,
-            artworkWidth: 370,
-            artworkHeight: 370,
-            artworkFit: BoxFit.fitHeight,
-            artworkQuality: FilterQuality.high,
-            nullArtworkWidget: const Icon(
-              Icons.music_note,
-              size: 20,
-            ))),
+        height: 300,
+        child: Obx(() => controller.LastShownSongmodels.isEmpty
+            ? Text("No song selected")
+            : QueryArtworkWidget(
+                id: controller
+                    .LastShownSongmodels[controller.LastSongIndex.value].id,
+                type: ArtworkType.AUDIO,
+                quality: 100,
+                size: 1000,
+                artworkBorder: BorderRadius.zero,
+                artworkWidth: 300,
+                artworkHeight: 300,
+                artworkFit: BoxFit.fitHeight,
+                artworkQuality: FilterQuality.high,
+                nullArtworkWidget: const Icon(
+                  Icons.music_note,
+                  size: 20,
+                ))),
       ),
+    );
+  }
+}
+
+class TagButtonRow extends GetView<MyController> {
+  const TagButtonRow({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+      child: Column(
+        children: [
+          Obx(() => Wrap(
+                spacing: 8, // 가로 간격
+                runSpacing: 2, // 세로 간격
+                alignment: WrapAlignment.center, // 가운데 정렬
+                children: [
+                  _buildTagButton('브금'),
+                  _buildTagButton('주류'),
+                  _buildTagButton('비주류'),
+                  _buildTagButton('노동'),
+                  _buildTagButton('평온'),
+                  _buildTagButton('축축'),
+                  _buildTagButton('달달'),
+                  _buildTagButton('발랄'),
+                  _buildTagButton('강력'),
+                  _buildTagButton('노래방'),
+                  OutlinedButton.icon(
+                    // icon: Icon(Icons.clear_all, size: 16),
+                    label: Text('삭제'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                      // padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      // shape: RoundedRectangleBorder(
+                      //   borderRadius: BorderRadius.circular(20),
+                      // ),
+                    ),
+                    onPressed: () async {
+                      // 확인 대화상자 표시
+                      final confirmed = await showDialog<bool>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: Text('태그 삭제'),
+                          content: Text('현재 노래의 모든 태그를 삭제하시겠습니까?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(false),
+                              child: Text('취소'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(true),
+                              child: Text('삭제'),
+                            ),
+                          ],
+                        ),
+                      );
+
+                      if (confirmed == true) {
+                        final success = await controller.clearAllTags();
+
+                        // 결과 메시지 표시
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                                success ? '모든 태그가 삭제되었습니다' : '태그 삭제에 실패했습니다'),
+                            duration: Duration(milliseconds: 300),
+                          ),
+                        );
+                      }
+                    },
+                  )
+                ],
+              )),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTagButton(String tag) {
+    final isSelected = controller.currentTags.contains(tag);
+
+    return FilterChip(
+      label: Text(tag),
+      selected: isSelected,
+      selectedColor: Colors.blue.withOpacity(0.7),
+      backgroundColor: Colors.grey.withOpacity(0.3),
+      checkmarkColor: Colors.white,
+      showCheckmark: false,
+      onSelected: (bool selected) async {
+        await controller.toggleTag(tag);
+      },
     );
   }
 }
@@ -111,68 +323,61 @@ class UtilityRow extends StatelessWidget {
     return Column(
       children: [
         Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-      IconButton(
-          onPressed: () async {
-            controller.deleteSong();
-          },
-          icon: const Icon(Icons.delete, color: Colors.white)),
-      IconButton(
-        icon: const Icon(Icons.play_circle_rounded,
-            color: Color.fromARGB(255, 255, 0, 0)),
-        onPressed: () async {
-          String url =
-              'vnd.youtube://${controller.LastShownSongmodels[controller.LastSongIndex.value].composer}';
-          // run youtube
-          // if (await canLaunchUrl(Uri(path: url))) {
-          //   await launchUrl(Uri(path: url));
-          // }
-          if (await canLaunch(url)) {
-            await launch(url);
-          } else {
-            // run webbrowser
-            String webUrl =
-                'https://www.youtube.com/watch?v=${controller.LastShownSongmodels[controller.LastSongIndex.value].composer}';
-            if (await canLaunchUrl(Uri(path: webUrl))) {
-              await launchUrl(Uri(path: webUrl));
-            } else {
-              throw 'Could not launch $webUrl';
-            }
-          }
-        },
-      ),
-      ElevatedButton(
-        onPressed: () {
-          controller.shufflePlaylist(); // 플레이리스트 섞기 버튼
-        },
-        child: Text("R"),
-      ),
-      ElevatedButton(
-        onPressed: () {
-          controller.moveSong('s'); // "toS" 버튼
-        },
-        child: Text("toS"),
-      ),
-      ElevatedButton(
-        onPressed: () {
-          controller.moveSong('u'); // "toU" 버튼
-        },
-        child: Text("toU"),
-      ),
-      ElevatedButton(
-        onPressed: () {
-          controller.moveSong('a'); // "toA" 버튼
-        },
-        child: Text("toA"),
-      )
-    ]),
-    Row(
-      children: [
-      ElevatedButton(onPressed: () {controller.moveSong('envT');},child: Text("마을"),),
-      ElevatedButton(onPressed: () {controller.moveSong('envX');},child: Text("야외"),),
-      ElevatedButton(onPressed: () {controller.moveSong('envD');},child: Text("던전"),),
-      ElevatedButton(onPressed: () {controller.moveSong('envC');},child: Text("전투"),),
-      ],
-    )
+          IconButton(
+              onPressed: () async {
+                controller.deleteSong();
+              },
+              icon: const Icon(Icons.delete, color: Colors.white)),
+          IconButton(
+            icon: const Icon(Icons.play_circle_rounded,
+                color: Color.fromARGB(255, 255, 0, 0)),
+            onPressed: () async {
+              String url =
+                  'vnd.youtube://${controller.LastShownSongmodels[controller.LastSongIndex.value].composer}';
+              // run youtube
+              // if (await canLaunchUrl(Uri(path: url))) {
+              //   await launchUrl(Uri(path: url));
+              // }
+              if (await canLaunch(url)) {
+                await launch(url);
+              } else {
+                // run webbrowser
+                String webUrl =
+                    'https://www.youtube.com/watch?v=${controller.LastShownSongmodels[controller.LastSongIndex.value].composer}';
+                if (await canLaunchUrl(Uri(path: webUrl))) {
+                  await launchUrl(Uri(path: webUrl));
+                } else {
+                  throw 'Could not launch $webUrl';
+                }
+              }
+            },
+          ),
+          ElevatedButton(
+            onPressed: () {
+              controller.shufflePlaylist(); // 플레이리스트 섞기 버튼
+            },
+            child: Text("R"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              controller.moveSong('s'); // "toS" 버튼
+            },
+            child: Text("toS"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              controller.moveSong('u'); // "toU" 버튼
+            },
+            child: Text("toU"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              controller.moveSong('a'); // "toA" 버튼
+            },
+            child: Text("toA"),
+          ),
+        ]),
+        TagButtonRow(),
       ],
     );
   }
@@ -201,9 +406,8 @@ class UserControlRow extends StatelessWidget {
               onPressed: controller.isPlaying.value
                   ? controller.player.pause
                   : controller.player.play,
-              icon: MyUserControlIcon(controller.isPlaying.value
-                  ? Icons.pause
-                  : Icons.play_arrow),
+              icon: MyUserControlIcon(
+                  controller.isPlaying.value ? Icons.pause : Icons.play_arrow),
             )),
         IconButton(
             onPressed: controller.skipforward,
@@ -214,6 +418,7 @@ class UserControlRow extends StatelessWidget {
       ],
     );
   }
+
   Widget MyUserControlIcon(IconData icon) {
     return Icon(icon, color: Colors.white, size: 32);
   }
