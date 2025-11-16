@@ -398,10 +398,10 @@ class UserControlRow extends StatelessWidget {
       children: [
         IconButton(
             onPressed: controller.backward,
-            icon: MyUserControlIcon(Icons.fast_rewind)),
+            icon: MyUserControlIcon(Icons.skip_previous)),
         IconButton(
             onPressed: controller.skipbackward,
-            icon: MyUserControlIcon(Icons.skip_previous)),
+            icon: MyUserControlIcon(Icons.fast_rewind)),
         Obx(() => IconButton(
               onPressed: controller.isPlaying.value
                   ? controller.player.pause
@@ -411,10 +411,10 @@ class UserControlRow extends StatelessWidget {
             )),
         IconButton(
             onPressed: controller.skipforward,
-            icon: MyUserControlIcon(Icons.skip_next)),
+            icon: MyUserControlIcon(Icons.fast_forward)),
         IconButton(
             onPressed: controller.forward,
-            icon: MyUserControlIcon(Icons.fast_forward)),
+            icon: MyUserControlIcon(Icons.skip_next)),
       ],
     );
   }
