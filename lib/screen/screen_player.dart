@@ -19,7 +19,7 @@ class ScreenPlayer extends GetView<MyController> {
               // 썸네일과 곡 정보를 가로로 배치
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 20),
-                height: 150,
+                height: 180, // 높이를 늘려서 두 줄 텍스트 수용
                 child: Row(
                   children: [
                     // 왼쪽: 썸네일 (크기 절반으로 축소)
@@ -72,6 +72,8 @@ class ScreenPlayer extends GetView<MyController> {
                                                   .LastShownSongmodels[
                                                       controller.LastSongIndex.value]
                                                   .title,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
                                             fontSize: 18,
                                             fontWeight: FontWeight.bold,
@@ -95,6 +97,8 @@ class ScreenPlayer extends GetView<MyController> {
                                                           .LastSongIndex.value]
                                                       .artist ??
                                                   "Unknown",
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.w500,
@@ -102,6 +106,15 @@ class ScreenPlayer extends GetView<MyController> {
                                         ),
                                 ),
                               )),
+                          SizedBox(height: 15),
+                          // Seek 바를 제목/아티스트 아래에 배치
+                          Obx(() => Slider(
+                            value: controller.position.value.inSeconds.toDouble(),
+                            max: controller.duration.value.inSeconds.toDouble(),
+                            onChanged: (value) {
+                              controller.player.seek(Duration(seconds: value.toInt()));
+                            },
+                          )),
                         ],
                       ),
                     ),
@@ -109,23 +122,6 @@ class ScreenPlayer extends GetView<MyController> {
                 ),
               ),
               SizedBox(height: 20),
-              // 하단: Seek 바
-              Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-                const SizedBox(height: 10, width: 20),
-                Obx(() => Text(_formatDuration(controller.position.value))),
-                Obx(() => Expanded(
-                      child: Slider(
-                        value: controller.position.value.inSeconds.toDouble(),
-                        max: controller.duration.value.inSeconds.toDouble(),
-                        onChanged: (value) {
-                          controller.player
-                              .seek(Duration(seconds: value.toInt()));
-                        },
-                      ),
-                    )),
-                Obx(() => Text(_formatDuration(controller.duration.value))),
-                const SizedBox(height: 10, width: 20),
-              ]),
               Expanded(child: Center()),
               UtilityRow(controller: controller),
               UserControlRow(controller: controller),
