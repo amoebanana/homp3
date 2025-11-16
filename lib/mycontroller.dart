@@ -56,14 +56,8 @@ class MyController extends GetxController {
     player.currentIndexStream.listen((index) {
       if (index != null) {
         LastSongIndex.value = index;
-        // playback_title.value = LastShownSongmodels[index].title;
-        print('currentIndexStream: $index');
-      }
-    });
-    player.currentIndexStream.listen((index) {
-      if (index != null) {
-        LastSongIndex.value = index;
         loadTags(); // 새 노래로 변경될 때 태그 로드
+        print('currentIndexStream: $index');
       }
     });
   }
@@ -131,6 +125,7 @@ class MyController extends GetxController {
       );
       player.setAudioSource(playlist);
       LastSongIndex.value = 0; // 인덱스를 0으로 초기화
+      loadTags(); // 셔플 후 현재 곡의 태그 로드
       print('플레이리스트를 랜덤으로 섞었습니다.');
     } else {
       print('플레이리스트가 비어 있습니다.');
