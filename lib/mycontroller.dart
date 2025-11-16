@@ -222,43 +222,6 @@ class MyController extends GetxController {
 
   final Audiotagger tagger = Audiotagger();
   RxList<String> currentTags = <String>[].obs;
-  Future<bool> clearAllTags() async {
-    if (LastShownSongmodels.isEmpty ||
-        LastSongIndex.value >= LastShownSongmodels.length) {
-      return false;
-    }
-
-    final filePath = LastShownSongmodels[LastSongIndex.value].data;
-    final tags = await tagger.readTags(path: filePath);
-
-    if (tags == null) {
-      return false;
-    }
-
-    // 기존 태그를 유지하되 genre만 비우기
-    final newTag = Tag(
-        title: tags.title,
-        artist: tags.artist,
-        album: tags.album,
-        genre: "", // genre 태그를 비움
-        year: tags.year,
-        artwork: tags.artwork,
-        comment: tags.comment,
-        discNumber: tags.discNumber,
-        trackNumber: tags.trackNumber);
-
-    final result = await tagger.writeTags(path: filePath, tag: newTag);
-
-    final success = result == true;
-
-    if (success) {
-      // UI 업데이트를 위해 현재 태그 목록 비우기
-      currentTags.clear();
-      return true;
-    }
-
-    return false;
-  }
 
   // 현재 파일의 장르 태그 읽기
   Future<void> loadTags() async {

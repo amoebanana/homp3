@@ -238,50 +238,6 @@ class TagButtonRow extends GetView<MyController> {
                   _buildTagButton('발랄'),
                   _buildTagButton('강력'),
                   _buildTagButton('노래방'),
-                  OutlinedButton.icon(
-                    // icon: Icon(Icons.clear_all, size: 16),
-                    label: Text('삭제'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.red,
-                      // padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      // shape: RoundedRectangleBorder(
-                      //   borderRadius: BorderRadius.circular(20),
-                      // ),
-                    ),
-                    onPressed: () async {
-                      // 확인 대화상자 표시
-                      final confirmed = await showDialog<bool>(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: Text('태그 삭제'),
-                          content: Text('현재 노래의 모든 태그를 삭제하시겠습니까?'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(false),
-                              child: Text('취소'),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(true),
-                              child: Text('삭제'),
-                            ),
-                          ],
-                        ),
-                      );
-
-                      if (confirmed == true) {
-                        final success = await controller.clearAllTags();
-
-                        // 결과 메시지 표시
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                                success ? '모든 태그가 삭제되었습니다' : '태그 삭제에 실패했습니다'),
-                            duration: Duration(milliseconds: 300),
-                          ),
-                        );
-                      }
-                    },
-                  )
                 ],
               )),
         ],
