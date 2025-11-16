@@ -14,9 +14,98 @@ class ScreenPlayer extends GetView<MyController> {
         : Column(
             children: [
               Container(
-                height: 30,
+                height: 20,
               ),
-              AlbumArt(controller: controller),
+              // 썸네일과 곡 정보를 가로로 배치
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                height: 150,
+                child: Row(
+                  children: [
+                    // 왼쪽: 썸네일 (크기 절반으로 축소)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: SizedBox(
+                        width: 150,
+                        height: 150,
+                        child: Obx(() => controller.LastShownSongmodels.isEmpty
+                            ? Container(
+                                color: Colors.grey[800],
+                                child: Icon(Icons.music_note, size: 50),
+                              )
+                            : QueryArtworkWidget(
+                                id: controller
+                                    .LastShownSongmodels[controller.LastSongIndex.value].id,
+                                type: ArtworkType.AUDIO,
+                                quality: 100,
+                                size: 500,
+                                artworkBorder: BorderRadius.zero,
+                                artworkWidth: 150,
+                                artworkHeight: 150,
+                                artworkFit: BoxFit.cover,
+                                artworkQuality: FilterQuality.high,
+                                nullArtworkWidget: Container(
+                                  color: Colors.grey[800],
+                                  child: Icon(Icons.music_note, size: 50),
+                                ))),
+                      ),
+                    ),
+                    SizedBox(width: 20),
+                    // 오른쪽: 곡 정보 (세로 배치)
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // 아티스트 (터치 가능)
+                          Obx(() => GestureDetector(
+                                onTap: () => _showEditArtistDialog(context),
+                                child: Container(
+                                  width: double.infinity,
+                                  padding: EdgeInsets.symmetric(vertical: 8),
+                                  child: controller.LastShownSongmodels.isEmpty
+                                      ? Text("No song selected", style: TextStyle(fontSize: 16))
+                                      : Text(
+                                          controller
+                                                  .LastShownSongmodels[controller
+                                                      .LastSongIndex.value]
+                                                  .artist ??
+                                              "Unknown",
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                ),
+                              )),
+                          // 제목 (터치 가능)
+                          Obx(() => GestureDetector(
+                                onTap: () => _showEditTitleDialog(context),
+                                child: Container(
+                                  width: double.infinity,
+                                  padding: EdgeInsets.symmetric(vertical: 8),
+                                  child: controller.LastShownSongmodels.isEmpty
+                                      ? Text("No song selected", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))
+                                      : Text(
+                                          controller
+                                              .LastShownSongmodels[
+                                                  controller.LastSongIndex.value]
+                                              .title,
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                ),
+                              )),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 20),
+              // 하단: Seek 바
               Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
                 const SizedBox(height: 10, width: 20),
                 Obx(() => Text(_formatDuration(controller.position.value))),
@@ -33,52 +122,6 @@ class ScreenPlayer extends GetView<MyController> {
                 Obx(() => Text(_formatDuration(controller.duration.value))),
                 const SizedBox(height: 10, width: 20),
               ]),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // 아티스트 (터치 가능)
-                  Obx(() => GestureDetector(
-                        onTap: () => _showEditArtistDialog(context),
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: 4),
-                          child: controller.LastShownSongmodels.isEmpty
-                              ? Text("No song selected")
-                              : Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      controller
-                                              .LastShownSongmodels[controller
-                                                  .LastSongIndex.value]
-                                              .artist ??
-                                          "Unknown",
-                                    ),
-                                  ],
-                                ),
-                        ),
-                      )),
-                  // 제목 (터치 가능)
-                  Obx(() => GestureDetector(
-                        onTap: () => _showEditTitleDialog(context),
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: 4),
-                          child: controller.LastShownSongmodels.isEmpty
-                              ? Text("No song selected")
-                              : Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      controller
-                                          .LastShownSongmodels[
-                                              controller.LastSongIndex.value]
-                                          .title,
-                                    ),
-                                  ],
-                                ),
-                        ),
-                      )),
-                ],
-              ),
               Expanded(child: Center()),
               UtilityRow(controller: controller),
               UserControlRow(controller: controller),
