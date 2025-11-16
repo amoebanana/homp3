@@ -10,6 +10,8 @@ import 'package:permission_handler/permission_handler.dart';
 
 import 'package:audiotagger/audiotagger.dart';
 import 'package:audiotagger/models/tag.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:flutter/material.dart';
 
 class MyController extends GetxController {
   final AudioPlayer player = AudioPlayer();
@@ -31,6 +33,19 @@ class MyController extends GetxController {
   void hitme() {
     playback_title.value = LastShownSongmodels[player.currentIndex!].title;
     print('hitme');
+  }
+
+  // 토스트 메시지 표시 함수
+  void showToast(String message) {
+    Fluttertoast.showToast(
+      msg: message,
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 1,
+      backgroundColor: Colors.black54,
+      textColor: Colors.white,
+      fontSize: 16.0,
+    );
   }
 
   @override
@@ -126,8 +141,10 @@ class MyController extends GetxController {
       player.setAudioSource(playlist);
       LastSongIndex.value = 0; // 인덱스를 0으로 초기화
       loadTags(); // 셔플 후 현재 곡의 태그 로드
+      showToast('플레이리스트를 랜덤으로 섞었습니다 🎵');
       print('플레이리스트를 랜덤으로 섞었습니다.');
     } else {
+      showToast('플레이리스트가 비어 있습니다');
       print('플레이리스트가 비어 있습니다.');
     }
   }
