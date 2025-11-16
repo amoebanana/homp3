@@ -240,21 +240,38 @@ class MyController extends GetxController {
   final Audiotagger tagger = Audiotagger();
   RxList<String> currentTags = <String>[].obs;
 
+  // UI 즉시 업데이트를 위한 반응형 변수들
+  RxString currentSongTitle = "".obs;
+  RxString currentSongArtist = "".obs;
+
   // 현재 파일의 장르 태그 읽기
   Future<void> loadTags() async {
     if (LastShownSongmodels.isEmpty ||
         LastSongIndex.value >= LastShownSongmodels.length) {
       currentTags.clear();
+      currentSongTitle.value = "";
+      currentSongArtist.value = "";
       return;
     }
 
     final filePath = LastShownSongmodels[LastSongIndex.value].data;
     final tags = await tagger.readTags(path: filePath);
 
+    // 태그 로드
     if (tags != null && tags.genre != null && tags.genre!.isNotEmpty) {
       currentTags.value = tags.genre!.split(',').map((e) => e.trim()).toList();
     } else {
       currentTags.clear();
+    }
+
+    // 제목과 아티스트 정보 업데이트 (파일 메타데이터에서 읽어옴)
+    if (tags != null) {
+      currentSongTitle.value = tags.title ?? LastShownSongmodels[LastSongIndex.value].title;
+      currentSongArtist.value = tags.artist ?? LastShownSongmodels[LastSongIndex.value].artist ?? "Unknown";
+    } else {
+      // 메타데이터를 읽을 수 없으면 SongModel의 정보 사용
+      currentSongTitle.value = LastShownSongmodels[LastSongIndex.value].title;
+      currentSongArtist.value = LastShownSongmodels[LastSongIndex.value].artist ?? "Unknown";
     }
   }
 
@@ -347,13 +364,12 @@ Future<bool> updateSongTitle(String newTitle) async {
   final success = result == true;
   
   if (success) {
-    // 현재 모델 업데이트 (메모리상)
-    SongModel updatedSong = LastShownSongmodels[LastSongIndex.value];
-    // SongModel은 immutable할 수 있어 직접 수정이 불가능할 수 있음
-    // 필요시 OnAudioQuery를 통해 다시 정보를 가져와야 할 수 있음
-    
-    // 필요한 UI 업데이트가 있으면 여기서 처리
+    // UI 즉시 업데이트
+    currentSongTitle.value = newTitle;
+    showToast('제목이 "$newTitle"로 변경되었습니다 ✏️');
     return true;
+  } else {
+    showToast('제목 변경에 실패했습니다');
   }
   
   return false;
@@ -393,8 +409,12 @@ Future<bool> updateSongArtist(String newArtist) async {
   final success = result == true;
   
   if (success) {
-    // 필요한 UI 업데이트가 있으면 여기서 처리
+    // UI 즉시 업데이트
+    currentSongArtist.value = newArtist;
+    showToast('아티스트가 "$newArtist"로 변경되었습니다 ✏️');
     return true;
+  } else {
+    showToast('아티스트 변경에 실패했습니다');
   }
   
   return false;

@@ -57,28 +57,7 @@ class ScreenPlayer extends GetView<MyController> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // 아티스트 (터치 가능)
-                          Obx(() => GestureDetector(
-                                onTap: () => _showEditArtistDialog(context),
-                                child: Container(
-                                  width: double.infinity,
-                                  padding: EdgeInsets.symmetric(vertical: 8),
-                                  child: controller.LastShownSongmodels.isEmpty
-                                      ? Text("No song selected", style: TextStyle(fontSize: 16))
-                                      : Text(
-                                          controller
-                                                  .LastShownSongmodels[controller
-                                                      .LastSongIndex.value]
-                                                  .artist ??
-                                              "Unknown",
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                ),
-                              )),
-                          // 제목 (터치 가능)
+                          // 제목 (터치 가능) - 위로 이동
                           Obx(() => GestureDetector(
                                 onTap: () => _showEditTitleDialog(context),
                                 child: Container(
@@ -87,13 +66,38 @@ class ScreenPlayer extends GetView<MyController> {
                                   child: controller.LastShownSongmodels.isEmpty
                                       ? Text("No song selected", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))
                                       : Text(
-                                          controller
-                                              .LastShownSongmodels[
-                                                  controller.LastSongIndex.value]
-                                              .title,
+                                          controller.currentSongTitle.value.isNotEmpty
+                                              ? controller.currentSongTitle.value
+                                              : controller
+                                                  .LastShownSongmodels[
+                                                      controller.LastSongIndex.value]
+                                                  .title,
                                           style: TextStyle(
                                             fontSize: 18,
                                             fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                ),
+                              )),
+                          // 아티스트 (터치 가능) - 아래로 이동
+                          Obx(() => GestureDetector(
+                                onTap: () => _showEditArtistDialog(context),
+                                child: Container(
+                                  width: double.infinity,
+                                  padding: EdgeInsets.symmetric(vertical: 8),
+                                  child: controller.LastShownSongmodels.isEmpty
+                                      ? Text("No song selected", style: TextStyle(fontSize: 16))
+                                      : Text(
+                                          controller.currentSongArtist.value.isNotEmpty
+                                              ? controller.currentSongArtist.value
+                                              : controller
+                                                      .LastShownSongmodels[controller
+                                                          .LastSongIndex.value]
+                                                      .artist ??
+                                                  "Unknown",
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500,
                                           ),
                                         ),
                                 ),
@@ -139,8 +143,9 @@ class ScreenPlayer extends GetView<MyController> {
   Future<void> _showEditArtistDialog(BuildContext context) async {
     if (controller.LastShownSongmodels.isEmpty) return;
 
-    final currentArtist =
-        controller.LastShownSongmodels[controller.LastSongIndex.value].artist ??
+    final currentArtist = controller.currentSongArtist.value.isNotEmpty
+        ? controller.currentSongArtist.value
+        : controller.LastShownSongmodels[controller.LastSongIndex.value].artist ??
             "Unknown";
     final textController = TextEditingController(text: currentArtist);
 
@@ -182,8 +187,9 @@ class ScreenPlayer extends GetView<MyController> {
   Future<void> _showEditTitleDialog(BuildContext context) async {
     if (controller.LastShownSongmodels.isEmpty) return;
 
-    final currentTitle =
-        controller.LastShownSongmodels[controller.LastSongIndex.value].title;
+    final currentTitle = controller.currentSongTitle.value.isNotEmpty
+        ? controller.currentSongTitle.value
+        : controller.LastShownSongmodels[controller.LastSongIndex.value].title;
     final textController = TextEditingController(text: currentTitle);
 
     await showDialog(
